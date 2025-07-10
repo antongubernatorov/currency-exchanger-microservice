@@ -3,7 +3,7 @@ package com.gubernatorov.currencyrateservice.service;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.gubernatorov.currencyrateservice.client.HttpCurrencyDateRateClient;
-import io.slurm.cources.currency.schema.ValCurs;
+import com.gubernatorov.currencyrateservice.schema.ValCurs;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;

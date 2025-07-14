@@ -5,6 +5,7 @@ cloud:
   db-host: localhost
   eureka-host: localhost
   currency-url: http://localhost:8080
+  kafka-host: localhost
 
 spring:
   application:
@@ -27,6 +28,12 @@ spring:
     url: jdbc:postgresql://${cloud.db-host}:5432/processing
     user: postgres
     password: masterkey
+
+  kafka:
+    producer:
+      bootstrap-servers: ${cloud.kafka-host}:9092
+      key-serializer: org.apache.kafka.common.serialization.LongSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 service:
   currency:

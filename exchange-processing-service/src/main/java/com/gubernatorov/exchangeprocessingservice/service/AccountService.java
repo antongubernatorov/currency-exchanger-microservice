@@ -2,8 +2,10 @@ package com.gubernatorov.exchangeprocessingservice.service;
 
 import com.gubernatorov.exchangeprocessingservice.dto.NewAccountDTO;
 import com.gubernatorov.exchangeprocessingservice.model.AccountEntity;
+import com.gubernatorov.exchangeprocessingservice.model.AccountEvent;
 import com.gubernatorov.exchangeprocessingservice.model.Operation;
 import com.gubernatorov.exchangeprocessingservice.repository.AccountRepository;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -11,16 +13,20 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class AccountService {
 
-    public final AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
-    public AccountService(AccountRepository accountRepository) {
+    private final ApplicationEventPublisher eventPublisher;
+
+    public AccountService(AccountRepository accountRepository, ApplicationEventPublisher eventPublisher) {
         this.accountRepository = accountRepository;
+        this.eventPublisher = eventPublisher;
     }
 
     @Transactional
@@ -40,6 +46,8 @@ public class AccountService {
             var balance = acc.getBalance().add(money);
             acc.setBalance(balance);
 
+            eventPublisher.publishEvent(createEvent(uid, acc, targetAccount, operation, money));
+
             return accountRepository.save(acc);
         }).orElseThrow(() -> new IllegalArgumentException("Account with ID " + accountId + " not found"));
         return result;
@@ -56,5 +64,19 @@ public class AccountService {
         } else {
             return accounts.stream().toList();
         }
+    }
+
+    private AccountEvent createEvent(String uid, AccountEntity acc, Long targetId, Operation operation, BigDecimal amount) {
+        var current = new Date();
+        return AccountEvent.builder()
+                .uuid(uid)
+                .accountId(acc.getId())
+                .currency(acc.getCurrencyCode())
+                .operation(operation)
+                .fromAccount(targetId)
+                .amount(amount)
+                .userId(acc.getUserId())
+                .created(current)
+                .build();
     }
 }
